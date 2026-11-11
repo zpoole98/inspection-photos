@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Inspection Photos</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Inspection">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#0a7cff">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f5f5f7;--card:#fff;--tx:#1d1d1f;--mut:#6e6e73;--ac:#0a7cff;--bd:#e0e0e5;--ok:#1f9d55}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#000;--card:#1c1c1e;--tx:#f5f5f7;--mut:#98989d;--ac:#3d9bff;--bd:#38383a;--ok:#34c759}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#000;--card:#1c1c1e;--tx:#f5f5f7;--mut:#98989d;--ac:#3d9bff;--bd:#38383a;--ok:#34c759}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.35 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif}
+main{max-width:600px;margin:0 auto;padding:16px}
+h1{font-size:26px;margin:8px 0 2px}
+.sub,.mut{color:var(--mut);font-size:14px}
+.sub{margin:0 0 16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:12px}
+details.card{padding:0}
+summary{list-style:none;display:flex;justify-content:space-between;align-items:center;padding:14px;font-size:17px;font-weight:600}
+summary::-webkit-details-marker{display:none}
+summary .cnt{font-weight:500;font-size:14px;color:var(--mut)}
+summary.done .cnt{color:var(--ok)}
+.body{padding:0 14px 14px}
+label.btn,button{display:inline-block;text-align:center;background:var(--ac);color:#fff;border:0;border-radius:10px;padding:9px 14px;font-size:15px;font-weight:600;font-family:inherit}
+#go{display:block;width:100%;padding:14px;font-size:17px;border-radius:12px}
+button:disabled{opacity:.4}
+.sec{background:transparent!important;color:var(--ac)!important;border:1px solid var(--ac)}
+.x{background:transparent;color:var(--mut);border:1px solid var(--bd);padding:9px 11px}
+input[type=file]{display:none}
+#vin{font-size:28px;letter-spacing:6px;text-align:center;text-transform:uppercase;font-weight:700;width:100%;padding:12px;border-radius:12px;border:1px solid var(--bd);background:var(--bg);color:var(--tx)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.row{display:grid;grid-template-columns:26px 40px 1fr auto;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--bd)}
+.num{color:var(--mut);font-size:13px;text-align:center}
+.th{width:40px;height:40px;border-radius:8px;background:var(--bg);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:20px}
+.th img{width:100%;height:100%;object-fit:cover}
+.tx{font-size:14px;min-width:0}
+.tx small{display:block;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row.ok .tx{color:var(--ok)}
+.rb{display:flex;gap:6px}
+.rb .btn,.rb button{padding:7px 10px;font-size:14px}
+.path{font-family:ui-monospace,Menlo,monospace;font-size:13px;word-break:break-all;margin:6px 0 0}
+.bar{height:8px;background:var(--bd);border-radius:4px;overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;width:0;background:var(--ac)}
+.st-dup{color:var(--ok)!important}.st-diff{color:#d9822b!important}.st-new{color:var(--ac)!important}#cmpRes{white-space:pre-line;font-size:14px}
+[hidden]{display:none!important}
+</style></head>
+<body><main>
+<h1>🚗 Inspection Photos</h1>
+<p class="sub">Photos are named from the Inspection 4a shot list and sorted into folders.</p>
+<p class="mut" id="inst" hidden>📲 To install: tap Share, then “Add to Home Screen”.</p>
+
+<div class="card">
+  <div class="mut" style="margin-bottom:6px">Last 4 of the vehicle VIN</div>
+  <input id="vin" maxlength="4" inputmode="text" autocapitalize="characters" autocomplete="off" autocorrect="off" placeholder="••••">
+</div>
+
+<div id="cats"></div>
+
+<div class="card">
+  <strong id="sum"></strong>
+  <div class="path" id="tree"></div>
+  <div class="mut" id="warn" style="margin-top:8px"></div>
+</div>
+
+<div class="card" id="cmp">
+  <strong>Compare with an existing folder</strong>
+  <p class="mut" style="margin:4px 0 10px">Choose the photos from a folder that’s already named (select all in Files). Matches by shot number in the file name and by the actual photo, even if it was renamed.</p>
+  <div class="acts"><span id="cmpPick"></span></div>
+  <div id="cmpRes" class="mut"></div>
+  <label class="mut" id="skipL" hidden style="display:block;margin-top:8px"><input type="checkbox" id="skip" style="display:inline;width:auto"> Leave photos already in the folder out of the ZIP</label>
+</div>
+
+<button id="go" disabled>Create ZIP</button>
+<div class="bar" id="bar" hidden><i></i></div>
+<p class="mut" id="msg"></p>
+
+<div class="card">
+  <strong>Email</strong>
+  <input id="to" type="email" inputmode="email" autocapitalize="off" autocorrect="off" placeholder="Send to (optional)" style="display:block;width:100%;margin:8px 0;padding:11px;font-size:16px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx)">
+  <button id="mail" class="sec" disabled style="display:block;width:100%;padding:12px;font-size:16px;border-radius:10px">Email ZIP</button>
+  <a id="mailto" hidden style="display:block;margin-top:10px;color:var(--ac);font-weight:600">Open Mail draft</a>
+  <p class="mut" style="margin:8px 0 0">Builds the ZIP, then opens the share sheet so you can pick Mail with the ZIP attached. Mail may offer Mail Drop for large files.</p>
+</div>
+<p class="mut">Tip: open a category and tap “Add photos in order”. Photos are sorted by time taken and fill the empty shots from the top, so shoot in list order. Extra photos are kept as “Extra” files. To check against an already-named folder, use “Compare with an existing folder” below. Nothing leaves your device.</p>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous"></script>
+<script>
+const $=id=>document.getElementById(id);
+const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;};
+const ROOT="Inspection 4a";
+const L=(s,a)=>a.map((t,i)=>[s+i,t]);
+const ta=["Windshield exterior (perpendicular)","Windshield interior"];
+for(const s of ["L","R"])for(let i=1;i<=6;i++)ta.push(`${s}${i} complete exterior`,`${s}${i} complete interior`);
+ta.push("Swing door TA complete exterior","Swing door TA complete interior","OEM cargo glass complete exterior","OEM cargo glass complete interior","OEM lift gate glass complete exterior","OEM lift gate glass complete interior");
+const CATS=[
+{name:"Transparent Armor",items:L(1,ta)},
+{name:"Engine Compartment",items:[[33,"Complete engine, focused on middle"],[35,"Complete engine, focused on left"],[36,"Complete engine, focused on right"],[37,"Complete engine, focused on middle above"],[38,"Hood light while illuminated"]]},
+{name:"Operation Control",items:L(39,["Keys: ignition, swing door and gas","Interior controls while running: instrument panel, horn, steering wheel tilt, wipers/washers front/rear, radio","Interior lights: dome, glove, map and reading lights","Interior operation: heater, power door locks, power windows, side mirrors (electronic)","Front operating lights: headlights high/low, parking, hazard and emergency lights","Rear operating lights: brake, reverse, hazard, emergency and driving lights"])},
+{name:"Special Equipment",items:L(45,["Armor and OEM label (if possible)","Locking gas cap and label (diesel only)","Left front tire: manufacturer, size, load rating"])},
+{name:"Exterior",items:L(48,["Middle hood belt line","45° angle centering left headlight","45° angle centering right headlight","Perpendicular to car, left centerline","Perpendicular to car, right centerline","Middle rear bumper belt line","45° angle centering left brake light","45° angle centering right brake light","VIDEO: Start at driver’s door, circle front of vehicle to passenger door","VIDEO: Start at driver’s door, circle rear of vehicle to passenger door","Roof from rear of vehicle","Roof from front of vehicle"])},
+{name:"Interior",items:L(60,["Center of dash from A pillar to radio, left side","Center of dash from A pillar to radio, right side","Center console","Left front door open","Left rear door open","Right front door open","Right rear door open","Side door open (van)","Open, swing door closed (if present): cargo, trunk or barn door","Inside swing door while open","All doors open, center of cargo area","From rear of vehicle: front headliner (seats folded down)","From front of vehicle: rear headliner (seats folded down)"])}
+];
+const st={};CATS.forEach(c=>st[c.name]={slots:{},extras:[]});
+const isVid=f=>/^video\//.test(f.type)||/\.(mov|mp4|avi|wmv)$/i.test(f.name);
+const isVS=t=>t.startsWith("VIDEO:");
+const ext=f=>(f.name.match(/\.[^.]+$/)||[".jpg"])[0].toLowerCase().replace(".jpeg",".jpg");
+const slug=t=>t.replace(/^VIDEO:\s*/,"").replace(/°/g,"deg").replace(/[^A-Za-z0-9]+/g,"_").replace(/^_|_$/g,"").slice(0,60);
+const vin=()=>$("vin").value.toUpperCase().replace(/[^A-Z0-9]/g,"");
+
+function tiff(v,t){
+  const le=v.getUint16(t)===0x4949,u16=p=>v.getUint16(p,le),u32=p=>v.getUint32(p,le);
+  const ifd=p=>{const n=u16(p),r={};for(let i=0;i<n;i++){const e=p+2+i*12;r[u16(e)]={count:u32(e+4),off:e+8};}return r;};
+  const i0=ifd(t+u32(t+4));let tag=null;
+  if(i0[0x8769]){const ex=ifd(t+u32(i0[0x8769].off));if(ex[0x9003])tag=ex[0x9003];}
+  if(!tag&&i0[0x0132])tag=i0[0x0132];
+  if(!tag)return null;
+  const p=t+u32(tag.off);let s="";
+  for(let i=0;i<tag.count-1;i++)s+=String.fromCharCode(v.getUint8(p+i));
+  const m=s.match(/^(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
+  return m&&+m[1]>=1990?new Date(+m[1],m[2]-1,+m[3],+m[4],+m[5],+m[6]):null;
+}
+async function photoDate(f){
+  try{
+    const v=new DataView(await f.slice(0,131072).arrayBuffer());
+    if(v.getUint16(0)===0xFFD8){
+      let o=2;
+      while(o<v.byteLength-10){
+        const m=v.getUint16(o),len=v.getUint16(o+2);
+        if(m===0xFFE1&&v.getUint32(o+4)===0x45786966){const d=tiff(v,o+10);if(d)return d;break;}
+        if((m&0xFF00)!==0xFF00)break;
+        o+=2+len;
+      }
+    }
+  }catch(e){}
+  return new Date(f.lastModified);
+}
+const mk=async f=>({file:f,date:await photoDate(f)});
+
+function warn(files){
+  const w=[];
+  if(files.some(f=>/\.hei[cf]$/i.test(f.name)))w.push("Some photos are HEIC; the requirement is JPEG.");
+  if(files.some(f=>/\.mov$/i.test(f.name)))w.push("Videos are .MOV; the requirement is MP4, AVI or WMV.");
+  $("warn").textContent=w.join(" ");
+}
+function fileLabel(text,multi,cb,cls){
+  const l=el("label","btn "+(cls||""),text),i=document.createElement("input");
+  i.type="file";i.accept="image/*,video/*";i.multiple=multi;
+  i.addEventListener("change",()=>{const f=[...i.files];if(f.length){warn(f);cb(f);}});
+  l.append(i);return l;
+}
+async function bulk(c,files){
+  const s=st[c.name],items=[];
+  for(const f of files)items.push(await mk(f));
+  items.sort((a,b)=>a.date-b.date);
+  for(const it of items){
+    const slot=c.items.find(([n,t])=>!s.slots[n]&&isVS(t)===isVid(it.file));
+    if(slot)s.slots[slot[0]]=it;else s.extras.push(it);
+  }
+  renderCat(c);update();
+}
+function renderCat(c){
+  const s=st[c.name],d=c.el,done=c.items.filter(([n])=>s.slots[n]).length;
+  const sm=d.querySelector("summary");
+  sm.querySelector(".cnt").textContent=`${done}/${c.items.length}`+(s.extras.length?` +${s.extras.length}`:"");
+  sm.classList.toggle("done",done===c.items.length);
+  const body=d.querySelector(".body");body.textContent="";
+  const bar=el("div","acts");
+  bar.append(fileLabel("Add photos in order",true,f=>bulk(c,f)));
+  if(done||s.extras.length){const b=el("button","sec","Clear");b.onclick=()=>{s.slots={};s.extras=[];renderCat(c);update();};bar.append(b);}
+  body.append(bar);
+  if(s.extras.length)body.append(el("p","mut",`${s.extras.length} extra file${s.extras.length===1?"":"s"} will be saved as Extra_001…`));
+  c.items.forEach(([n,t])=>{
+    const it=s.slots[n],row=el("div","row"+(it?" ok":""));
+    const th=el("span","th");
+    if(it){if(isVid(it.file))th.textContent="🎬";else{const im=new Image();im.src=URL.createObjectURL(it.file);th.append(im);}}
+    const tx=el("div","tx",t);if(it){tx.append(el("small",null,it.file.name));if(it.status)tx.append(el("small","st-"+it.status,{dup:"✓ Already in folder: "+it.match,diff:"⚠ Folder has a different photo: "+it.match,new:"＋ New"}[it.status]));}
+    const rb=el("div","rb");
+    rb.append(fileLabel(it?"Swap":"Add",false,async f=>{s.slots[n]=await mk(f[0]);renderCat(c);update();},it?"sec":""));
+    if(it){const x=el("button","x","✕");x.onclick=()=>{delete s.slots[n];renderCat(c);update();};rb.append(x);}
+    row.append(el("span","num",n),th,tx,rb);body.append(row);
+  });
+}
+CATS.forEach(c=>{
+  const d=el("details","card");
+  d.innerHTML='<summary><span></span><span class="cnt"></span></summary><div class="body"></div>';
+  d.querySelector("summary span").textContent="📁 "+c.name;
+  c.el=d;$("cats").append(d);renderCat(c);
+});
+
+$("vin").addEventListener("input",()=>{$("vin").value=vin();update();});
+function plan(){
+  const v=vin(),out=[],R=`${v} ${ROOT}`;
+  CATS.forEach(c=>{
+    const s=st[c.name],cs=c.name.replace(/ /g,"_");
+    c.items.forEach(([n,t])=>{const it=s.slots[n];if(it&&!(skipDup()&&it.status==="dup"))out.push({...it,path:`${R}/${c.name}/${v}_${String(n).padStart(2,"0")}_${slug(t)}${ext(it.file)}`});});
+    [...s.extras].filter(it=>!(skipDup()&&it.status==="dup")).sort((a,b)=>a.date-b.date).forEach((it,i)=>out.push({...it,path:`${R}/${c.name}/${v}_${cs}_Extra_${String(i+1).padStart(3,"0")}${ext(it.file)}`}));
+  });
+  return out;
+}
+function update(){
+  let shots=0,all=0,ex=0;
+  CATS.forEach(c=>{const s=st[c.name];all+=c.items.length;shots+=c.items.filter(([n])=>s.slots[n]).length;ex+=s.extras.length;});
+  const v=vin();
+  $("sum").textContent=`${shots} of ${all} shots filled`+(ex?` · ${ex} extra${ex===1?"":"s"}`:"");
+  $("tree").textContent=`${v||"VIN"} ${ROOT}/`;
+  $("go").disabled=!(v.length===4&&(shots+ex));
+  $("msg").textContent=v.length<4?"Enter the last 4 characters of the VIN.":"";
+}
+let ref=[],cmpTok=0;
+const skipDup=()=>$("skip")&&$("skip").checked;
+async function H(o){if(o.h)return o.h;try{const d=await crypto.subtle.digest("SHA-256",await o.file.arrayBuffer());o.h=[...new Uint8Array(d)].map(x=>x.toString(16).padStart(2,"0")).join("");}catch(e){o.h=o.file.size+"?";}return o.h;}
+async function compare(){
+  const tok=++cmpTok,seen=new Set(),bySize={},diffs=[];
+  ref.forEach(r=>(bySize[r.file.size]=bySize[r.file.size]||[]).push(r));
+  let dup=0,diff=0,nw=0;
+  for(const c of CATS){
+    const s=st[c.name];
+    const slots=c.items.map(([n])=>[n,s.slots[n]]).filter(x=>x[1]);
+    const all=[...slots.map(x=>x[1]),...s.extras];
+    for(const it of all){
+      it.status="new";it.match="";
+      const cands=bySize[it.file.size]||[];
+      if(cands.length){const h=await H(it);for(const r of cands){if(await H(r)===h){it.status="dup";it.match=r.name;seen.add(r);break;}}}
+      if(tok!==cmpTok)return;
+    }
+    for(const [n,it] of slots){
+      if(it.status==="dup")continue;
+      const r=ref.find(r=>r.num===n);
+      if(r){it.status="diff";it.match=r.name;seen.add(r);diffs.push("#"+n);}
+    }
+    all.forEach(it=>{if(it.status==="dup")dup++;else if(it.status==="diff")diff++;else nw++;});
+  }
+  const only=ref.filter(r=>!seen.has(r)).map(r=>r.num?"#"+r.num:r.name);
+  const out=[`✓ ${dup} already in folder · ⚠ ${diff} different · ＋ ${nw} new · ${only.length} only in folder`];
+  const rv=[...new Set(ref.map(r=>r.vin).filter(Boolean))];
+  if(rv.length&&vin().length===4&&!rv.includes(vin()))out.push(`Folder VIN is ${rv.join("/")}, but you entered ${vin()}.`);
+  if(diffs.length)out.push("Different photo for the same shot: "+diffs.join(", "));
+  if(only.length)out.push("Only in folder: "+only.slice(0,40).join(", ")+(only.length>40?"…":""));
+  $("cmpRes").textContent=out.join("\n");
+  CATS.forEach(renderCat);
+}
+(()=>{const l=el("label","btn","Choose files from folder"),i=document.createElement("input");i.type="file";i.accept="image/*,video/*";i.multiple=true;
+  i.addEventListener("change",()=>{const f=[...i.files];if(!f.length)return;i.value="";
+    ref=f.map(file=>{const m=file.name.match(/^([A-Za-z0-9]{4})_(\d{2})_/);return{file,name:file.name,num:m?+m[2]:null,vin:m?m[1].toUpperCase():null};});
+    $("skipL").hidden=false;$("cmpRes").textContent="Comparing…";compare();});
+  l.append(i);$("cmpPick").append(l);})();
+const _u=update;update=function(){_u();if(ref.length)compare();};
+
+// ---- Save / email (share sheet) ----
+let readyFile=null;
+try{$("to").value=localStorage.getItem("insp_to")||"";}catch(e){}
+$("to").addEventListener("input",()=>{try{localStorage.setItem("insp_to",$("to").value);}catch(e){}});
+const subj=()=>`${vin()} Inspection 4a photos`;
+function mailBody(){
+  const p=plan(),parts=CATS.map(c=>{const k=p.filter(x=>x.path.includes("/"+c.name+"/")).length;return k?`${c.name}: ${k}`:null;}).filter(Boolean);
+  return `Inspection 4a photos for VIN ending ${vin()}\n${p.length} files\n`+parts.join("\n");
+}
+const _u2=update;
+update=function(){_u2();readyFile=null;$("go").textContent="Create ZIP";$("mail").textContent="Email ZIP";$("mailto").hidden=true;$("mail").disabled=$("go").disabled;};
+async function deliver(file,text){
+  try{
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:subj(),text});return "shared";}
+  }catch(e){if(e&&e.name==="AbortError")return "cancel";}
+  const u=URL.createObjectURL(file),a=document.createElement("a");
+  a.href=u;a.download=file.name;document.body.append(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u),60000);
+  return "downloaded";
+}
+async function build(){
+  const v=vin(),bar=$("bar"),fill=bar.firstElementChild,msg=$("msg");
+  if(typeof JSZip==="undefined"){msg.textContent="ZIP library not loaded. Connect to the internet once, then reopen the app.";return null;}
+  if(v.length<4||!plan().length){msg.textContent="Enter the VIN and add photos first.";return null;}
+  $("go").disabled=$("mail").disabled=true;bar.hidden=false;fill.style.width="0";msg.textContent="Building ZIP…";
+  try{
+    const zip=new JSZip();
+    CATS.forEach(c=>zip.folder(`${v} ${ROOT}/${c.name}`));
+    plan().forEach(x=>zip.file(x.path,x.file,{date:x.date}));
+    const blob=await zip.generateAsync({type:"blob",compression:"STORE"},m=>{fill.style.width=m.percent.toFixed(0)+"%";});
+    return new File([blob],`${v}_Inspection_4a.zip`,{type:"application/zip"});
+  }catch(err){
+    msg.textContent="Something went wrong ("+(err&&(err.code||err.message)||"unknown")+"). Try fewer files at once.";return null;
+  }finally{bar.hidden=true;$("go").disabled=$("mail").disabled=false;}
+}
+async function act(kind){
+  const msg=$("msg");
+  if(!readyFile){
+    const f=await build();if(!f)return;
+    readyFile=f;const mb=f.size/1048576;
+    $("go").textContent="Tap again to save";$("mail").textContent="Tap again to email";
+    msg.textContent=`ZIP ready (${mb.toFixed(1)} MB). Tap the button again to open the share sheet.`+(kind==="mail"&&mb>20?" It’s large; Mail will likely offer Mail Drop.":"");
+    return;
+  }
+  const r=await deliver(readyFile,kind==="mail"?mailBody():"");
+  if(r==="cancel")return;
+  if(kind==="mail"&&r==="downloaded"){
+    const to=encodeURIComponent($("to").value.trim()).replace(/%40/g,"@"),a=$("mailto");
+    a.href=`mailto:${to}?subject=${encodeURIComponent(subj())}&body=${encodeURIComponent(mailBody()+"\n\n(Attach the downloaded ZIP.)")}`;
+    a.hidden=false;msg.textContent="ZIP downloaded. Tap “Open Mail draft” and attach it from Files.";
+  }else{
+    msg.textContent=r==="shared"?"Choose Save to Files (or Mail) in the share sheet. Open the ZIP in Files to unpack it.":"Downloaded. Open it from the Files app to unpack.";
+  }
+}
+$("go").addEventListener("click",()=>act("save"));
+$("mail").addEventListener("click",()=>act("mail"));
+if(!(navigator.standalone||matchMedia("(display-mode: standalone)").matches))$("inst").hidden=false;
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+update();
+</script>
+</body></html>
